@@ -49,8 +49,7 @@ const useWebSocket = () => {
       );
     });
 
-    socket.on('error', (error) => {
-      console.error('WebSocket error:', error);
+    socket.on('error', () => {
       toast.error('Connection error. Retrying...');
     });
   }, [updateAgent, setConnectionStatus]);

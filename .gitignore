@@ -82,3 +82,7 @@ dump.rdb
 # Documentation build
 docs/_build/
 storybook-static/
+
+# Project-specific
+CLAUDE.md
+conductor/
