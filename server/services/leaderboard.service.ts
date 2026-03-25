@@ -187,7 +187,6 @@ export class LeaderboardService {
         agentMap[agent._id.toString()] = {
           id: agent._id.toString(),
           name: fullName,
-          email: agent.email,
           sales: 0,
           revenue: 0,
         };

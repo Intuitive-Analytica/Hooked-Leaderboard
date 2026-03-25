@@ -9,13 +9,19 @@ const useLeaderboard = () => {
   const dailyQuery = useQuery({
     queryKey: ['leaderboard', 'daily'],
     queryFn: fetchDailyLeaderboard,
-    refetchInterval: 60000,
+    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchIntervalInBackground: true, // Keep refetching even when tab is not focused
+    refetchOnWindowFocus: true,
+    staleTime: 20000, // Consider data stale after 20 seconds
   });
 
   const weeklyQuery = useQuery({
     queryKey: ['leaderboard', 'weekly'],
     queryFn: fetchWeeklyLeaderboard,
-    refetchInterval: 60000,
+    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchIntervalInBackground: true, // Keep refetching even when tab is not focused
+    refetchOnWindowFocus: true,
+    staleTime: 20000, // Consider data stale after 20 seconds
   });
 
   useEffect(() => {
