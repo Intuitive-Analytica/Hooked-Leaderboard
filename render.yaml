@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: hooked-leaderboard-api
+    env: node
+    buildCommand: npm install && npm run build:server
+    startCommand: npm run start:server
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5001
+      - key: MONGODB_URI
+        sync: false
+      - key: AGENCY_ID
+        value: 694459ed8112d1c6dac765ea
+      - key: CLIENT_URL
+        sync: false
