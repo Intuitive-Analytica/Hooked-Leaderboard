@@ -205,6 +205,7 @@ export class LeaderboardService {
       });
 
       const agents = Object.values(agentMap)
+        .filter(agent => agent.name !== 'Intuitive Analytica') // Hide Intuitive Analytica agent
         .sort((a, b) => {
           // Primary sort by revenue, secondary by sales count if revenue is equal
           if (b.revenue !== a.revenue) {
