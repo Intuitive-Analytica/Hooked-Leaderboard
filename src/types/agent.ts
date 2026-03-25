@@ -1,3 +1,10 @@
+export interface TrendData {
+  value: number;
+  direction: 'up' | 'down' | 'neutral';
+  yesterdayRevenue?: number;
+  lastWeekRevenue?: number;
+}
+
 export interface Agent {
   id: string;
   name: string;
@@ -7,8 +14,10 @@ export interface Agent {
   avatar?: string;
   dailySales: number;
   dailyRevenue: number;
+  dailyTrend?: TrendData;
   weeklySales: number;
   weeklyRevenue: number;
+  weeklyTrend?: TrendData;
   monthlySales?: number;
   monthlyRevenue?: number;
   rank?: number;
@@ -31,6 +40,7 @@ export interface AgentStats {
 
 export interface LeaderboardData {
   date: string;
+  agencyName?: string;
   agents: Agent[];
   lastUpdated: Date;
 }

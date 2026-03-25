@@ -13,7 +13,7 @@ const Dashboard = () => {
 
       <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-dark-text">
-          Sales Leaderboard
+          {(view === 'daily' ? dailyData?.agencyName : weeklyData?.agencyName) || 'Sales Leaderboard'}
         </h2>
         <div className="flex gap-2">
           <button

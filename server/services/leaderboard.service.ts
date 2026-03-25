@@ -2,6 +2,7 @@ import { ObjectId } from 'mongodb';
 import { startOfDay, startOfWeek } from 'date-fns';
 import Lead from '../models/Lead.model';
 import AgentMaster from '../models/AgentMaster.model';
+import AgencyMaster from '../models/AgencyMaster.model';
 import Disposition from '../models/Disposition.model';
 import logger from '../utils/logger';
 
@@ -12,17 +13,68 @@ export class LeaderboardService {
     this.agencyId = process.env.AGENCY_ID || '694459ed8112d1c6dac765ea';
   }
 
+  private async getAgencyName(): Promise<string> {
+    try {
+      const agency = await AgencyMaster.findById(this.agencyId).lean();
+      return agency?.agencyName || 'Sales Leaderboard';
+    } catch (error) {
+      logger.error('Error fetching agency name:', error);
+      return 'Sales Leaderboard';
+    }
+  }
+
   async getDailyLeaderboard() {
     try {
       const today = startOfDay(new Date());
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
 
+      // Get today's data
       const salesData = await this.getSalesData(today, tomorrow);
+
+      // Get yesterday's data for trend calculation
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const dayBeforeYesterday = new Date(today);
+      const yesterdayData = await this.getSalesData(yesterday, today);
+
+      // Create a map of yesterday's revenue by agent ID
+      const yesterdayRevenueMap: { [key: string]: number } = {};
+      yesterdayData.agents.forEach(agent => {
+        yesterdayRevenueMap[agent.id] = agent.revenue;
+      });
+
+      // Add trend data to each agent
+      const agentsWithTrends = salesData.agents.map(agent => {
+        const yesterdayRevenue = yesterdayRevenueMap[agent.id] || 0;
+        let trendValue = 0;
+        let direction: 'up' | 'down' | 'neutral' = 'neutral';
+
+        if (yesterdayRevenue > 0) {
+          trendValue = ((agent.revenue - yesterdayRevenue) / yesterdayRevenue) * 100;
+          direction = trendValue > 0 ? 'up' : trendValue < 0 ? 'down' : 'neutral';
+        } else if (agent.revenue > 0) {
+          // If no revenue yesterday but revenue today, show as 100% up
+          trendValue = 100;
+          direction = 'up';
+        }
+
+        return {
+          ...agent,
+          dailyTrend: {
+            value: trendValue,
+            direction,
+            yesterdayRevenue
+          }
+        };
+      });
+
+      const agencyName = await this.getAgencyName();
 
       return {
         date: today.toISOString(),
-        agents: salesData.agents,
+        agencyName,
+        agents: agentsWithTrends,
         totalSales: salesData.totalSales,
         totalRevenue: salesData.totalRevenue,
         lastUpdated: new Date(),
@@ -39,12 +91,54 @@ export class LeaderboardService {
       monday.setHours(0, 0, 0, 0);
       const now = new Date();
 
+      // Get this week's data
       const salesData = await this.getSalesData(monday, now);
+
+      // Get last week's data for the same period (Monday to same day of week)
+      const lastMonday = new Date(monday);
+      lastMonday.setDate(lastMonday.getDate() - 7);
+      const lastWeekSameTime = new Date(now);
+      lastWeekSameTime.setDate(lastWeekSameTime.getDate() - 7);
+      const lastWeekData = await this.getSalesData(lastMonday, lastWeekSameTime);
+
+      // Create a map of last week's revenue by agent ID
+      const lastWeekRevenueMap: { [key: string]: number } = {};
+      lastWeekData.agents.forEach(agent => {
+        lastWeekRevenueMap[agent.id] = agent.revenue;
+      });
+
+      // Add trend data to each agent
+      const agentsWithTrends = salesData.agents.map(agent => {
+        const lastWeekRevenue = lastWeekRevenueMap[agent.id] || 0;
+        let trendValue = 0;
+        let direction: 'up' | 'down' | 'neutral' = 'neutral';
+
+        if (lastWeekRevenue > 0) {
+          trendValue = ((agent.revenue - lastWeekRevenue) / lastWeekRevenue) * 100;
+          direction = trendValue > 0 ? 'up' : trendValue < 0 ? 'down' : 'neutral';
+        } else if (agent.revenue > 0) {
+          // If no revenue last week but revenue this week, show as 100% up
+          trendValue = 100;
+          direction = 'up';
+        }
+
+        return {
+          ...agent,
+          weeklyTrend: {
+            value: trendValue,
+            direction,
+            lastWeekRevenue
+          }
+        };
+      });
+
+      const agencyName = await this.getAgencyName();
 
       return {
         weekStart: monday.toISOString(),
         weekEnd: now.toISOString(),
-        agents: salesData.agents,
+        agencyName,
+        agents: agentsWithTrends,
         totalSales: salesData.totalSales,
         totalRevenue: salesData.totalRevenue,
         lastUpdated: new Date(),

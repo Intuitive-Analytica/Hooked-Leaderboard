@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Agent } from '../types/agent';
 import { formatCurrency, formatNumber } from '../utils/formatters';
+import TrendIndicator from './TrendIndicator';
 
 interface AgentRowProps {
   agent: Agent;
@@ -35,16 +36,22 @@ const AgentRow = ({ agent, rank, view, maxRevenue }: AgentRowProps) => {
 
         {/* Agent info and progress */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="font-semibold text-gray-900 dark:text-dark-text truncate">
-              {agent.name}
-            </h3>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <h3 className="font-semibold text-gray-900 dark:text-dark-text truncate">
+                {agent.name}
+              </h3>
+              <TrendIndicator
+                trend={view === 'daily' ? agent.dailyTrend : agent.weeklyTrend}
+                period={view}
+              />
+            </div>
             <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 ml-4">
               <span className="hidden sm:flex items-center gap-1">
                 <span className="text-gray-900 dark:text-dark-text font-semibold">{formatCurrency(avgDeal)}</span>
                 <span>DEAL AVG.</span>
               </span>
-              <span className="flex items-center gap-1">
+              <span className="hidden sm:flex items-center gap-1">
                 <span className="text-gray-900 dark:text-dark-text font-semibold">{formatNumber(sales)}</span>
                 <span>CLOSED</span>
               </span>
@@ -64,17 +71,14 @@ const AgentRow = ({ agent, rank, view, maxRevenue }: AgentRowProps) => {
                 }}
               >
                 {/* Revenue pill at the end of the progress bar */}
-                <div className="absolute -right-2 top-1/2 -translate-y-1/2 bg-[#7839ee] text-white px-4 py-1.5 rounded-full text-sm font-bold whitespace-nowrap shadow-md">
+                <div className="absolute right-0 top-1/2 bg-[#7839ee] text-white px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap shadow-md z-10"
+                  style={{
+                    transform: 'translateY(-50%) translateX(50%)'
+                  }}
+                >
                   {formatCurrency(revenue)}
                 </div>
               </motion.div>
-
-              {/* Fallback pill if progress is too small */}
-              {progressPercentage < 15 && (
-                <div className="absolute left-2 top-1/2 -translate-y-1/2 bg-[#7839ee] text-white px-4 py-1.5 rounded-full text-sm font-bold whitespace-nowrap z-10 shadow-md">
-                  {formatCurrency(revenue)}
-                </div>
-              )}
             </div>
           </div>
 
@@ -83,6 +87,10 @@ const AgentRow = ({ agent, rank, view, maxRevenue }: AgentRowProps) => {
             <span className="flex items-center gap-1">
               <span className="text-gray-900 dark:text-dark-text font-semibold">{formatCurrency(avgDeal)}</span>
               <span>AVG</span>
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="text-gray-900 dark:text-dark-text font-semibold">{formatNumber(sales)}</span>
+              <span>CLOSED</span>
             </span>
           </div>
         </div>
